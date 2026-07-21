@@ -4,8 +4,8 @@ services:
     container_name: ai_support_postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: vivek
-      POSTGRES_PASSWORD: devpassword123
+      POSTGRES_USER: your_username_here
+      POSTGRES_PASSWORD: your_password_here
       POSTGRES_DB: ai_support_db
     ports:
       - "5432:5432"
