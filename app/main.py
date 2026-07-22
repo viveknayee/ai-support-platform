@@ -1,9 +1,6 @@
 from fastapi import FastAPI
+from app.api.v1.health import router as health_router
 
-from app.core.config import settings
+app = FastAPI(title="AI Support Platform")
 
-app = FastAPI(title=settings.PROJECT_NAME)
-
-@app.get("/api/v1/health")
-async def health_check() -> dict[str, str]:
-    return {"status": "ok", "environment": settings.ENVIRONMENT}
+app.include_router(health_router, prefix="/api/v1")
