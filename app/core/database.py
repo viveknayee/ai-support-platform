@@ -18,9 +18,9 @@ async def get_tenant_db_session(tenant_id: uuid.UUID) -> AsyncGenerator[AsyncSes
     async with async_session_factory() as session:
         try:
             await session.execute(
-                text("SET LOCAL app.current_tenant_id = :tenant_id"),
+                text("SELECT set_config('app.current_tenant_id', :tenant_id, true)"),
                 {"tenant_id": str(tenant_id)},
-            )
+)
             yield session
         finally:
             await session.close()

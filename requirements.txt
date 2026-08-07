@@ -4,3 +4,6 @@ pydantic-settings
 sqlalchemy[asyncio]
 asyncpg
 python-dotenv
+python-multipart
+bcrypt
+pydantic[email]
