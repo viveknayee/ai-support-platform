@@ -5,7 +5,7 @@ class Settings(BaseSettings):
     PROJECT_NAME: str
     ENVIRONMENT: str = "development"
     DATABASE_URL: str
-
+    ALEMBIC_DATABASE_URL: str
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 
