@@ -13,6 +13,13 @@ async_session_factory = async_sessionmaker(
     expire_on_commit=False,
 )
 
+auth_engine = create_async_engine(settings.AUTH_DATABASE_URL, echo=True)
+
+auth_session_factory = async_sessionmaker(
+    bind=auth_engine, 
+    expire_on_commit=False
+)
+
 
 async def get_tenant_db_session(tenant_id: uuid.UUID) -> AsyncGenerator[AsyncSession, None]:
     async with async_session_factory() as session:
