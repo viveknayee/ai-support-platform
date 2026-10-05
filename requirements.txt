@@ -9,3 +9,4 @@ bcrypt
 pydantic[email]
 pyjwt
 redis
+celery
