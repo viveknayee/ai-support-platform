@@ -26,6 +26,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from app.models.base import Base
 from app.models.tenant import Tenant  # noqa: F401
 from app.models.user import User  # noqa: F401
+from app.models.document import Document  # noqa: F401
 from app.core.config import settings
 
 target_metadata = Base.metadata
