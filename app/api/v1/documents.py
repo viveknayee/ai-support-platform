@@ -1,16 +1,23 @@
 import uuid
+from contextlib import asynccontextmanager
 from pathlib import Path
-
+import asyncio                                                 
+import logging                                                 
+from app.workers.celery_app import celery_app                 
 import aiofiles
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_tenant_user, get_db
+from app.api.deps import get_current_tenant_user
 from app.core.config import settings
+from app.core.database import get_tenant_db_session
 from app.models.document import Document, DocumentStatus
 from app.schemas.document import DocumentResponse
 
 router = APIRouter()
+logger = logging.getLogger(__name__) 
+
+# get_tenant_db_session is a generator; this wrapper lets us use it with "async with"
+tenant_db_session = asynccontextmanager(get_tenant_db_session)
 
 CHUNK_SIZE = 1024 * 1024  # read the upload 1 MB at a time
 
@@ -72,7 +79,6 @@ async def save_upload_to_disk(file: UploadFile, destination: Path, extension: st
 async def upload_document(
     file: UploadFile,
     current_user: dict = Depends(get_current_tenant_user),
-    db: AsyncSession = Depends(get_db),
 ):
     extension = validate_file_type(file)
 
@@ -97,13 +103,24 @@ async def upload_document(
         status=DocumentStatus.PENDING,
     )
     try:
-        db.add(document)
-        await db.flush()
-        await db.refresh(document)  # must happen BEFORE commit (tenant context ends at commit)
-        await db.commit()
+        # the DB connection is taken only here, AFTER the slow file copy is finished
+        async with tenant_db_session(tenant_id) as db:
+            db.add(document)
+            await db.flush()
+            await db.refresh(document)  # must happen BEFORE commit (tenant context ends at commit)
+            await db.commit()
     except Exception:
-        await db.rollback()
         destination.unlink(missing_ok=True)  # no DB row -> no orphan file
         raise
+    try:                                                                                
+        await asyncio.to_thread(                                                        
+            celery_app.send_task,                                                       
+            "process_document_task",                                                    
+            args=[str(document.id), str(tenant_id)],                                    
+            ignore_result=True,                                                         
+        )                                                                               
+    except Exception:                                                                   
+        # The upload itself succeeded; do not fail it. The document stays PENDING.      
+        logger.exception("Could not queue processing for document %s", document.id)    
 
     return document

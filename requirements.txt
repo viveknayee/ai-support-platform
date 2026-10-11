@@ -11,3 +11,5 @@ pyjwt
 redis
 celery
 aiofiles
+pdfplumber
+pypdf
