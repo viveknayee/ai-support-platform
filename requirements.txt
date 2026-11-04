@@ -13,3 +13,4 @@ celery
 aiofiles
 pdfplumber
 pypdf
+tiktoken
