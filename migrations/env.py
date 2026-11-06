@@ -27,6 +27,7 @@ from app.models.base import Base
 from app.models.tenant import Tenant  # noqa: F401
 from app.models.user import User  # noqa: F401
 from app.models.document import Document  # noqa: F401
+from app.models.document_chunk import DocumentChunk  # noqa: F401
 from app.core.config import settings
 
 target_metadata = Base.metadata
